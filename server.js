@@ -54,13 +54,13 @@ if(require.main === module){
       console.error('\n === Did you remember to start `mongod`? === \n');
       console.error(err);
     });
-}
 
-// Listen for incoming connections
-app.listen(PORT, function () {
-  console.info(`Server listening on ${this.address().port}`);
-}).on('error', err => {
-  console.error(err);
-});
+  // Listen for incoming connections
+  app.listen(PORT, function () {
+    console.info(`Server listening on ${this.address().port}`);
+  }).on('error', err => {
+    console.error(err);
+  });
+}
 
 module.exports = app;
