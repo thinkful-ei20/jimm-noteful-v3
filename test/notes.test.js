@@ -22,10 +22,12 @@ describe('Note tests', function(){
   });
 
   beforeEach(function () {
+    this.timeout(0);
     return Note.insertMany(seedNotes);
   });
 
   afterEach(function () {
+    this.timeout(0);
     return mongoose.connection.db.dropDatabase();
   });
 
