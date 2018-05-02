@@ -50,7 +50,7 @@ router.post('/', (req, res, next) => {
 
   Note.create(newNote)
     .then(result => {
-      res.status(201).json(result);
+      res.status(201).location(`${req.originalUrl}/${result.id}`).json(result);
     })
     .catch(err => console.error(err));
 

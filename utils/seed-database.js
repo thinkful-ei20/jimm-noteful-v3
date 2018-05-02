@@ -2,12 +2,12 @@
 
 const mongoose = require('mongoose');
 
-const { MONGODB_URI } = require('../config');
+const { TEST_MONGODB_URI } = require('../config');
 const Note = require('../models/note');
 
 const seedNotes = require('../db/seed/notes');
 
-mongoose.connect(MONGODB_URI)
+mongoose.connect(TEST_MONGODB_URI)
   .then(() => mongoose.connection.db.dropDatabase())
   .then(() => Note.insertMany(seedNotes))
   .then(results => {
