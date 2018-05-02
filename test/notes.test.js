@@ -18,25 +18,18 @@ describe('Note tests', function(){
   // before running any tests connect to the test database
   before(function () {
     return mongoose.connect(TEST_MONGODB_URI)
-      .then(() => mongoose.connection.db.dropDatabase);
+      .then(() => mongoose.connection.db.dropDatabase());
   });
 
-  // before each test reset/re-seed the database with the default data
-  // or you could write all tests to expect the changes from previous tests
-  beforeEach(function(){
-    this.timeout(0);
-    return Note.insertMany(seedNotes)
-      .then(() => Note.createIndexes());
+  beforeEach(function () {
+    return Note.insertMany(seedNotes);
   });
 
-  // after each test drop the test db so you can re-seed it before each
-  afterEach(function(){
-    this.timeout(0);
+  afterEach(function () {
     return mongoose.connection.db.dropDatabase();
   });
 
-  // disconnect from the db after all the tests 
-  after(function(){
+  after(function () {
     return mongoose.disconnect();
   });
 
