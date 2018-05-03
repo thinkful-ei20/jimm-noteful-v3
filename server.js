@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 
 const { PORT, MONGODB_URI } = require('./config');
 
+const foldersRouter = require('./routes/folders');
 const notesRouter = require('./routes/notes');
 
 // Create an Express application
@@ -24,6 +25,7 @@ app.use(express.json());
 
 // Mount routers
 app.use('/api/notes', notesRouter);
+app.use('/api/folders', foldersRouter);
 
 // Catch-all 404
 app.use(function (req, res, next) {
