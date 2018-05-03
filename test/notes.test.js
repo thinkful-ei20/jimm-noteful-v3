@@ -22,12 +22,12 @@ describe('Note tests', function(){
   });
 
   beforeEach(function () {
-    this.timeout(0);
+    this.timeout(10000);
     return Note.insertMany(seedNotes);
   });
 
   afterEach(function () {
-    this.timeout(0);
+    this.timeout(10000);
     return mongoose.connection.db.dropDatabase();
   });
 
@@ -103,6 +103,20 @@ describe('Note tests', function(){
         .then(data => {
           expect(res.body.title).to.equal(data.title);
           expect(res.body.content).to.equal(data.content);
+        });
+    });
+  });
+
+  describe('DELETE /api/notes/:id', function(){
+    it('should delete an item from the list', function(){
+      let data;
+      return Note.findOne()
+        .then(_data => {
+          data = _data;
+          return chai.request(app).delete(`/api/notes/${data.id}`);
+        })
+        .then(function (res) {
+          expect(res).to.have.status(204);
         });
     });
   });

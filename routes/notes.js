@@ -67,11 +67,9 @@ router.put('/:id', (req, res, next) => {
     }
   });
 
-  Note.findByIdAndUpdate(req.params.id, updateObj)
+  Note.findByIdAndUpdate(req.params.id, updateObj, {new : true})
     .then(result => {
-      return Note.findById(req.params.id);
-    }).then(updatedObj => {
-      res.status(201).json(updatedObj);
+      res.status(201).json(result);
     })
     .catch(err => next(err));
 
