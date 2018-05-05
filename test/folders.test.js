@@ -1,4 +1,3 @@
-
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
@@ -8,26 +7,25 @@ const { TEST_MONGODB_URI } = require('../config');
 
 const Note = require('../models/note');
 const Folder = require('../models/folder');
-const Tags = require('../models/tag');
 const seedNotes = require('../db/seed/notes');
 const seedFolders = require('../db/seed/folders');
-const seedTags = require('../db/seed/tags');
 
 //Just to not have to type chai.expect every time
 const expect = chai.expect;
 
 chai.use(chaiHttp);
 
-describe('Note tests', function(){
-  this.timeout(10000);
-  // before running any tests connect to the test database
+describe('Folder tests', function(){
+  
   before(function () {
+    this.timeout(10000);
     return mongoose.connect(TEST_MONGODB_URI)
       .then(() => mongoose.connection.db.dropDatabase());
   });
 
   beforeEach(function () {
     this.timeout(10000);
+    Folder.insertMany(seedFolders);
     return Note.insertMany(seedNotes);
   });
 
@@ -40,11 +38,11 @@ describe('Note tests', function(){
     return mongoose.disconnect();
   });
 
-  describe('GET api/notes/', function(){
-    it('should get all notes', () => {
+  describe('GET api/folders/', function(){
+    it('should get all folders', () => {
       return Promise.all([
-        Note.find(),
-        chai.request(app).get('/api/notes'),
+        Folder.find(),
+        chai.request(app).get('/api/folders'),
       ])
         .then(([data, res]) => {
           expect(res).to.have.status(200);
@@ -55,23 +53,23 @@ describe('Note tests', function(){
     });
   });
 
-  describe('GET /api/notes/:id', function () {
+  describe('GET /api/folders/:id', function () {
     it('should return correct note', function () {
       let data;
       // 1) First, call the database
-      return Note.findOne()
+      return Folder.findOne()
         .then(_data => {
           data = _data;
           // 2) then call the API with the ID
           return chai.request(app)
-            .get(`/api/notes/${data.id}`);
+            .get(`/api/folders/${data.id}`);
         })
         .then((res) => {
           expect(res).to.have.status(200);
           expect(res).to.be.json;
 
           expect(res.body).to.be.an('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'folderId', 'tags', 'createdAt', 'updatedAt');
+          expect(res.body).to.have.keys('id', 'name', 'createdAt', 'updatedAt');
 
           // 3) then compare database results to API response
           expect(res.body.id).to.equal(data.id);
@@ -81,48 +79,33 @@ describe('Note tests', function(){
     });
   });
 
+  describe('DELETE /api/folders/:id', function () {
 
-  describe('POST /api/notes', function () {
-    it('should create and return a new item when provided valid data', function () {
-      const newItem = {
-        'title': 'The best article about cats ever!',
-        'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor...'
-      };
-
-      let res;
-      // 1) First, call the API
-      return chai.request(app)
-        .post('/api/notes')
-        .send(newItem)
-        .then(function (_res) {
-          res = _res;
-          expect(res).to.have.status(201);
-          expect(res).to.have.header('location');
-          expect(res).to.be.json;
-          expect(res.body).to.be.a('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'folderId', 'tags', 'createdAt', 'updatedAt');
-          // 2) then call the database
-          return Note.findById(res.body.id);
-        })
-        // 3) then compare the API response to the database results
-        .then(data => {
-          expect(res.body.title).to.equal(data.title);
-          expect(res.body.content).to.equal(data.content);
-        });
-    });
-  });
-
-  describe('DELETE /api/notes/:id', function(){
-    it('should delete an item from the list', function(){
+    it('should delete an existing document and respond with 204', function () {
       let data;
-      return Note.findOne()
-        .then(_data => {
+      return Folder.findOne()
+        .then( _data => {
           data = _data;
-          return chai.request(app).delete(`/api/notes/${data.id}`);
+          return chai.request(app).delete(`/api/folders/${data.id}`);
         })
         .then(function (res) {
           expect(res).to.have.status(204);
+          return Folder.count({_id : data.id});
+        })
+        .then( count => {
+          expect(count).to.equal(0);
         });
     });
+
+    it('should respond with 404 when document does not exist', function () {
+      return chai.request(app).delete('/api/folders/DOESNOTEXIST')
+        .then((res) => {
+          expect(res).to.have.status(204);
+        });
+    });
+
   });
+
+
+
 });

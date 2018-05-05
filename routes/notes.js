@@ -3,18 +3,28 @@
 const express = require('express');
 const router = express.Router();
 const Note = require('../models/note');
+const Tag = require('../models/tag');
+const mongoose = require('mongoose');
 
-/* ========== GET/READ ALL ITEM ========== */
+/* ========== GET/READ ALL ITEMS ========== */
 router.get('/', (req, res, next) => {
-  const { searchTerm } = req.query;
+  const { searchTerm , folderId, tagId } = req.query;
   let filter = {};
 
+  // maybe add some ObjectId validation and if not valid run query w/o it in filter
   if (searchTerm) {
     const re = new RegExp(searchTerm, 'i');
     filter.title = { $regex: re };
   }
+  if(folderId){
+    filter.folderId = folderId;
+  }
+  if(tagId){
+    filter.tags = tagId;
+  }
 
   return Note.find(filter)
+    .populate('tags')
     .sort('created')
     .then(results => {
       res.json(results);
@@ -28,6 +38,7 @@ router.get('/:id', (req, res, next) => {
   const idToFind = req.params.id;
 
   return Note.findById(idToFind)
+    .populate('tags')
     .then(results => {
       res.json(results);
     })
@@ -45,8 +56,23 @@ router.post('/', (req, res, next) => {
   
   const newNote = {
     title : req.body.title,
-    content : req.body.content
+    content : req.body.content,
+    folderId: null,
+    tags: [],
   };
+
+  if (mongoose.Types.ObjectId.isValid(req.body.folderId)) {
+    newNote.folderId = req.body.folderId;
+  }
+  if(req.body.tags){
+    req.body.tags.forEach(tag => {
+      if (mongoose.Types.ObjectId.isValid(tag)) {
+        newNote.tags.push(tag);
+      } else {
+        console.error(`Invalid tagId, adding without tagId ${tag}`);
+      }
+    });
+  }
 
   Note.create(newNote)
     .then(result => {
@@ -58,14 +84,30 @@ router.post('/', (req, res, next) => {
 
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
 router.put('/:id', (req, res, next) => {
-
   const updateObj = {};
-  const updateableValues = ['title', 'content',];
+  if(req.body.folderId){
+    if(mongoose.Types.ObjectId.isValid(req.body.folderId)){
+      updateObj.folderId = req.body.folderId;  
+    } else {
+      console.error('Invalid folderId, updating without folderId');
+    }
+  }
+  const updateableValues = ['title', 'content'];
   updateableValues.forEach(field => {
     if(field in req.body){
       updateObj[field] = req.body[field];
     }
   });
+  if(req.body.tags){
+    updateObj.tags = [];
+    req.body.tags.forEach(tag => {
+      if (mongoose.Types.ObjectId.isValid(tag)) {
+        updateObj.tags.push(tag);
+      } else {
+        console.error(`Invalid tagId, adding without tagId ${tag}`);
+      }
+    });
+  }
 
   Note.findByIdAndUpdate(req.params.id, updateObj, {new : true})
     .then(result => {

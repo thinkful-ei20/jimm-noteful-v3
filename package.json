@@ -9,7 +9,10 @@
 	"main": "server.js",
 	"scripts": {
 		"start": "node server.js",
-    "test": "cross-env NODE_ENV=test mocha"
+		"test": "cross-env NODE_ENV=test mocha",
+		"seedDB" : "node utils/seed-database.js",
+		"seedTestDB" : "node utils/seed-test-database.js"
+		
 	},
 	"dependencies": {
 		"express": "^4.16.2",
